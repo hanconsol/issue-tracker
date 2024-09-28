@@ -23,7 +23,7 @@ module.exports = function (app) {
             project_id: project_id,
             ...cliQry
           });
-          console.log("results", results)
+          // console.log("results", results)
           if (!results[0]) {
             res.send({error: "No results found"})
           }else { 

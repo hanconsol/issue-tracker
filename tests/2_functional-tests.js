@@ -70,5 +70,38 @@ suite('Functional Tests', function () {
                 })
             done();
         });
-    })
+    });
+    suite(' GET request to /api/issues/{project}', () => {
+        test('View issues on a project', (done) => {
+            chai
+                .request(server)
+                .keepOpen()
+                .get('/api/issues/TEST')
+                .end(function (err, res) {
+                    assert.equal(res.status, 200);
+                    done();
+                });
+        });
+   
+    test('View issues on a project with one filter', (done) => {
+        chai
+            .request(server)
+            .keepOpen()
+            .get('/api/issues/TEST?created_by=tester 1')
+            .end(function (err, res) {
+                assert.equal(res.status, 200);
+                done();
+            });
+    });
+  test('View issues on a project with multiple filters', (done) => {
+        chai
+            .request(server)
+            .keepOpen()
+            .get('/api/issues/TEST?created_by=tester 1&issue_title=Test2')
+            .end(function (err, res) {
+                assert.equal(res.status, 200);
+                done();
+            });
+    });
+});
 });
