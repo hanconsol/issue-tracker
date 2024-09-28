@@ -6,15 +6,39 @@ module.exports = function (app) {
 
   app.route('/api/issues/:project')
 
-    .get(function (req, res) {
+    .get(async function (req, res) {
       let project = req.params.project;
+      let cliQry = req.query;
 
+      console.log("get-project", project, "query", cliQry);
+      try {
+        const projectGroup = await Issue.find({ project_name: project });
+
+        if (!projectGroup[0]) {
+          res.send({error: "could not find project"})
+        } else {
+          const project_id = projectGroup[0].project_id
+          console.log("project_id", projectGroup[0].project_id);
+          const results = await Issue.find({
+            project_id: project_id,
+            ...cliQry
+          });
+          console.log("results", results)
+          if (!results[0]) {
+            res.send({error: "No results found"})
+          }else { 
+          res.send(results);
+        }
+      }
+      }
+      catch (error) {
+        console.log(error)
+      }
     })
     //  app.route('/api/issues/:project') 
     .post(async function (req, res) {
       const { project } = req.params;
       let data = req.body;
-      //   console.log("req", req)
       console.log("project", project, "data", data);
       if (!data.issue_title || !data.issue_text || !data.created_by) {
         res.send({ error: 'required field(s) missing' });
@@ -27,11 +51,11 @@ module.exports = function (app) {
         }
         console.log("project_name", project_name);
 
-        const issue = await new Issue({
+        const issue = new Issue({
           issue_title: data.issue_title,
           issue_text: data.issue_text,
           created_by: data.created_by,
-          assigned_to:  data.assigned_to,
+          assigned_to: data.assigned_to,
           status_text: data.status_text,
           project_name: project_name.name,
           project_id: project_name._id
