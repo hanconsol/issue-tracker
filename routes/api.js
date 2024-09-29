@@ -15,7 +15,7 @@ module.exports = function (app) {
         const projectGroup = await Issue.find({ project_name: project });
 
         if (!projectGroup[0]) {
-          res.send({error: "could not find project"})
+          res.send({ error: "could not find project" })
         } else {
           const project_id = projectGroup[0].project_id
           console.log("project_id", projectGroup[0].project_id);
@@ -25,11 +25,11 @@ module.exports = function (app) {
           });
           // console.log("results", results)
           if (!results[0]) {
-            res.send({error: "No results found"})
-          }else { 
-          res.send(results);
+            res.send({ error: "No results found" })
+          } else {
+            res.send(results);
+          }
         }
-      }
       }
       catch (error) {
         console.log(error)
@@ -49,8 +49,7 @@ module.exports = function (app) {
         if (!project_name) {
           project_name = await Project.create({ name: project });
         }
-        console.log("project_name", project_name);
-
+        console.log("POST project_name", project_name);
         const issue = new Issue({
           issue_title: data.issue_title,
           issue_text: data.issue_text,
@@ -58,10 +57,11 @@ module.exports = function (app) {
           assigned_to: data.assigned_to,
           status_text: data.status_text,
           project_name: project_name.name,
-          project_id: project_name._id
+          project_id: project_name._id,
+
         });
         const result = await issue.save();
-        console.log(result);
+        console.log("POST result", result);
         res.send({
           issue_title: result.issue_title,
           issue_text: result.issue_text,
@@ -81,9 +81,44 @@ module.exports = function (app) {
 
     })
 
-    .put(function (req, res) {
-      let project = req.params.project;
-
+    .put(async function (req, res) {
+      let { project } = req.params;
+      let cliQry = req.body;
+      console.log("PUT project", project,)
+      console.log("PUT req.body - cliQry", cliQry)
+      const { _id } = req.body;
+      try {
+        if (!_id) {
+          res.send({ error: 'missing _id' });
+          return;
+        }
+        if (!cliQry.issue_title && !cliQry.issue_text && !cliQry.created_by  && !cliQry.assigned_to  && !cliQry.status_text && !cliQry.open ) {
+          res.send({ error: 'no update field(s) sent', '_id': _id });
+          return;
+        }
+        const updatedIssue = await Issue.findByIdAndUpdate(
+          _id,
+          {
+            ...cliQry,
+            updated_on: new Date()
+          },
+          { new: true }
+        );
+        console.log("PUT updatedIssue", updatedIssue);
+        console.log("PUT res.body after update", res.body)
+       // updatedIssue.on("error", err => {
+          //  res.send({ error: 'could not update', '_id': _id });
+      //  });
+        if (!updatedIssue) {
+          return res.send({ error: 'could not update', '_id': _id })
+        } else {
+          console.log("_id", _id)
+          res.send({ result: 'successfully updated', '_id': _id });
+        }
+      } catch (err) {
+        res.send({ error: 'could not update', '_id': _id });
+        console. log(err);
+      }
     })
 
     .delete(function (req, res) {
