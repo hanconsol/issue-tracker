@@ -117,9 +117,26 @@ module.exports = function (app) {
       }
     })
 
-    .delete(function (req, res) {
+    .delete(async function (req, res) {
       let project = req.params.project;
-
+      try {
+        const { _id } = req.body;
+        if (!_id) {
+          res.send({ error: 'missing _id' });
+          return;
+        }
+        console.log(_id)
+        const result = await Issue.findByIdAndDelete(_id);
+        if (!result) {
+          return res.send({ error: 'could not delete', '_id': _id })
+        }
+        res.send({ result: 'successfully deleted', '_id': _id });
+      } catch (error) {
+        res.send({ message: error.message });
+      }
     });
+
+
+
 
 };
