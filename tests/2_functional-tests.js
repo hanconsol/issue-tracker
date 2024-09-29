@@ -3,12 +3,13 @@ const chai = require('chai');
 const assert = chai.assert;
 const server = require('../server');
 chai.use(chaiHttp);
-        let issueIdToDelete;
+let issueIdToUpdate;
+let issueIdToDelete;
 
 
 suite('Functional Tests', function () {
     suite(' POST request to /api/issues/{project}', () => {
-        
+
         test('Create an issue with every field', (done) => {
             chai
                 .request(server)
@@ -22,7 +23,7 @@ suite('Functional Tests', function () {
                     status_text: 'in progress'
                 })
                 .end(function (err, res) {
-                    // console.log(res);
+                    issueIdToUpdate = res.body._id;
                     assert.equal(res.status, 200);
                     assert.equal(res.body.issue_title, 'Test1');
                     assert.equal(res.body.issue_text, 'Post it');
@@ -117,13 +118,13 @@ suite('Functional Tests', function () {
                 .keepOpen()
                 .put('/api/issues/TEST')
                 .send({
-                    _id: '66f7b3b1b3271872e9dedbeb',
+                    _id: issueIdToUpdate,
                     issue_title: 'UpdatedTest1',
                 })
                 .end(function (err, res) {
                     // console.log(res);
                     assert.equal(res.status, 200);
-                    assert.equal(res.text, '{"result":"successfully updated","_id":"66f7b3b1b3271872e9dedbeb"}');
+                    assert.equal(res.text, `{"result":"successfully updated","_id":"${issueIdToUpdate}"}`);
                 });
             done()
         });
@@ -133,7 +134,7 @@ suite('Functional Tests', function () {
                 .keepOpen()
                 .put('/api/issues/TEST')
                 .send({
-                    _id: '66f7b3b1b3271872e9dedbeb',
+                    _id: issueIdToUpdate,
                     issue_title: 'UpdatedTest2',
                     issue_text: 'Updated Post it',
                     created_by: 'Updated tester 1',
@@ -143,7 +144,7 @@ suite('Functional Tests', function () {
                 .end(function (err, res) {
                     // console.log(res);
                     assert.equal(res.status, 200);
-                    assert.equal(res.text, '{"result":"successfully updated","_id":"66f7b3b1b3271872e9dedbeb"}');
+                    assert.equal(res.text, `{"result":"successfully updated","_id":"${issueIdToUpdate}"}`);
 
                 });
             done()
@@ -174,7 +175,7 @@ suite('Functional Tests', function () {
                 .keepOpen()
                 .put('/api/issues/TEST')
                 .send({
-                    _id: '66f7b3b1b3271872e9dedbeb',
+                    _id: issueIdToUpdate,
                     issue_title: '',
                     issue_text: '',
                     created_by: '',
@@ -182,9 +183,8 @@ suite('Functional Tests', function () {
                     status_text: ''
                 })
                 .end(function (err, res) {
-                    // console.log(res);
                     assert.equal(res.status, 200);
-                    assert.equal(res.text, '{"error":"no update field(s) sent","_id":"66f7b3b1b3271872e9dedbeb"}');
+                    assert.equal(res.text, `{"error":"no update field(s) sent","_id":"${issueIdToUpdate}"}`);
                 });
             done()
         });
@@ -211,7 +211,7 @@ suite('Functional Tests', function () {
     });
     suite('DELETE request to /api/issues/{project}', () => {
         test('Delete an issue', (done) => {
-            console. log("issueIdToDelete in delete suite", issueIdToDelete);
+            console.log("issueIdToDelete in delete suite", issueIdToDelete);
             chai
                 .request(server)
                 .keepOpen()
@@ -227,37 +227,37 @@ suite('Functional Tests', function () {
             done();
         });
 
-         test('Delete an issue with an invalid _id', (done) => {
-             chai
-                 .request(server)
+        test('Delete an issue with an invalid _id', (done) => {
+            chai
+                .request(server)
                 .keepOpen()
-                 .delete('/api/issues/TEST')
-                 .send({
-                     _id: '4047b3b1b3271872e9ded404',
-                 })
-                 .end(function (err, res) {
+                .delete('/api/issues/TEST')
+                .send({
+                    _id: '4047b3b1b3271872e9ded404',
+                })
+                .end(function (err, res) {
                     // console.log(res);
                     assert.equal(res.status, 200);
-                   assert.equal(res.text, '{"error":"could not delete","_id":"4047b3b1b3271872e9ded404"}');
+                    assert.equal(res.text, '{"error":"could not delete","_id":"4047b3b1b3271872e9ded404"}');
 
-                 });
+                });
             done();
-         });
-          test('Delete an issue with missing _id', (done) => {
-                      chai
-                          .request(server)
-                         .keepOpen()
-                          .delete('/api/issues/TEST')
-                          .send({
-                              _id: '',
-                          })
-                          .end(function (err, res) {
-                             // console.log(res);
-                             assert.equal(res.status, 200);
-                            assert.equal(res.text, '{"error":"missing _id"}');
-         
-                          });
-                     done();
-                  });
-             });
+        });
+        test('Delete an issue with missing _id', (done) => {
+            chai
+                .request(server)
+                .keepOpen()
+                .delete('/api/issues/TEST')
+                .send({
+                    _id: '',
+                })
+                .end(function (err, res) {
+                    // console.log(res);
+                    assert.equal(res.status, 200);
+                    assert.equal(res.text, '{"error":"missing _id"}');
+
+                });
+            done();
+        });
     });
+});
