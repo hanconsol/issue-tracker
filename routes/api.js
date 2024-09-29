@@ -92,7 +92,7 @@ module.exports = function (app) {
           res.send({ error: 'missing _id' });
           return;
         }
-        if (!cliQry.issue_title && !cliQry.issue_text && !cliQry.created_by  && !cliQry.assigned_to  && !cliQry.status_text && !cliQry.open ) {
+        if (!cliQry.issue_title && !cliQry.issue_text && !cliQry.created_by && !cliQry.assigned_to && !cliQry.status_text && !cliQry.open) {
           res.send({ error: 'no update field(s) sent', '_id': _id });
           return;
         }
@@ -105,10 +105,6 @@ module.exports = function (app) {
           { new: true }
         );
         console.log("PUT updatedIssue", updatedIssue);
-        console.log("PUT res.body after update", res.body)
-       // updatedIssue.on("error", err => {
-          //  res.send({ error: 'could not update', '_id': _id });
-      //  });
         if (!updatedIssue) {
           return res.send({ error: 'could not update', '_id': _id })
         } else {
@@ -117,7 +113,7 @@ module.exports = function (app) {
         }
       } catch (err) {
         res.send({ error: 'could not update', '_id': _id });
-        console. log(err);
+        console.log(err);
       }
     })
 

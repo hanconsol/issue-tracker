@@ -82,26 +82,127 @@ suite('Functional Tests', function () {
                     done();
                 });
         });
-   
-    test('View issues on a project with one filter', (done) => {
-        chai
-            .request(server)
-            .keepOpen()
-            .get('/api/issues/TEST?created_by=tester 1')
-            .end(function (err, res) {
-                assert.equal(res.status, 200);
-                done();
-            });
+
+        test('View issues on a project with one filter', (done) => {
+            chai
+                .request(server)
+                .keepOpen()
+                .get('/api/issues/TEST?created_by=tester 1')
+                .end(function (err, res) {
+                    assert.equal(res.status, 200);
+                    done();
+                });
+        });
+        test('View issues on a project with multiple filters', (done) => {
+            chai
+                .request(server)
+                .keepOpen()
+                .get('/api/issues/TEST?created_by=tester 1&issue_title=Test2')
+                .end(function (err, res) {
+                    assert.equal(res.status, 200);
+                    done();
+                });
+        });
     });
-  test('View issues on a project with multiple filters', (done) => {
-        chai
-            .request(server)
-            .keepOpen()
-            .get('/api/issues/TEST?created_by=tester 1&issue_title=Test2')
-            .end(function (err, res) {
-                assert.equal(res.status, 200);
-                done();
-            });
+    suite('PUT request to /api/issues/{project}', () => {
+        test('Update one field on an issue', (done) => {
+            chai
+                .request(server)
+                .keepOpen()
+                .put('/api/issues/TEST')
+                .send({
+                    _id: '66f7b3b1b3271872e9dedbeb',
+                    issue_title: 'UpdatedTest1',
+
+                })
+                .end(function (err, res) {
+                    // console.log(res);
+                    assert.equal(res.status, 200);
+                    assert.equal(res.text, '{"result":"successfully updated","_id":"66f7b3b1b3271872e9dedbeb"}');
+
+                });
+            done()
+        });
+        test('Update multiple fields on an issue', (done) => {
+            chai
+                .request(server)
+                .keepOpen()
+                .put('/api/issues/TEST')
+                .send({
+                    _id: '66f7b3b1b3271872e9dedbeb',
+                    issue_title: 'UpdatedTest2',
+                    issue_text: 'Updated Post it',
+                    created_by: 'Updated tester 1',
+                    assigned_to: 'Updated tester 2',
+                    status_text: 'Updated in progress'
+                })
+                .end(function (err, res) {
+                    // console.log(res);
+                    assert.equal(res.status, 200);
+                    assert.equal(res.text, '{"result":"successfully updated","_id":"66f7b3b1b3271872e9dedbeb"}');
+
+                });
+            done()
+        });
+        test('Update an issue with missing _id', (done) => {
+            chai
+                .request(server)
+                .keepOpen()
+                .put('/api/issues/TEST')
+                .send({
+                    _id: '',
+                    issue_title: 'UpdatedTest2',
+                    issue_text: 'Updated Post it',
+                    created_by: 'Updated tester 1',
+                    assigned_to: 'Updated tester 2',
+                    status_text: 'Updated in progress'
+                })
+                .end(function (err, res) {
+                    // console.log(res);
+                    assert.equal(res.status, 200);
+                    assert.equal(res.text, '{"error":"missing _id"}');
+                });
+            done()
+        });
+        test('Update an issue with no fields to update', (done) => {
+            chai
+                .request(server)
+                .keepOpen()
+                .put('/api/issues/TEST')
+                .send({
+                    _id: '66f7b3b1b3271872e9dedbeb',
+                    issue_title: '',
+                    issue_text: '',
+                    created_by: '',
+                    assigned_to: '',
+                    status_text: ''
+                })
+                .end(function (err, res) {
+                    // console.log(res);
+                    assert.equal(res.status, 200);
+                    assert.equal(res.text, '{"error":"no update field(s) sent","_id":"66f7b3b1b3271872e9dedbeb"}');
+                });
+            done()
+        });
+        test('Update an issue with an invalid _id', (done) => {
+            chai
+                .request(server)
+                .keepOpen()
+                .put('/api/issues/TEST')
+                .send({
+                    _id: '4047b3b1b3271872e9ded404',
+                    issue_title: 'UpdatedTest2',
+                    issue_text: 'Updated Post it',
+                    created_by: 'Updated tester 1',
+                    assigned_to: 'Updated tester 2',
+                    status_text: 'Updated in progress'
+                })
+                .end(function (err, res) {
+                    // console.log(res);
+                    assert.equal(res.status, 200);
+                    assert.equal(res.text, '{"error":"could not update","_id":"4047b3b1b3271872e9ded404"}');
+                });
+            done()
+        });
     });
-});
 });
