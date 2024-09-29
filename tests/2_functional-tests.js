@@ -2,11 +2,13 @@ const chaiHttp = require('chai-http');
 const chai = require('chai');
 const assert = chai.assert;
 const server = require('../server');
-
 chai.use(chaiHttp);
+        let issueIdToDelete;
+
 
 suite('Functional Tests', function () {
     suite(' POST request to /api/issues/{project}', () => {
+        
         test('Create an issue with every field', (done) => {
             chai
                 .request(server)
@@ -29,7 +31,7 @@ suite('Functional Tests', function () {
                     assert.equal(res.body.status_text, 'in progress');
                     assert.equal(res.body.open, true);
                 });
-            done()
+            done();
         });
         test('Create an issue with only required fields', (done) => {
             chai
@@ -43,6 +45,8 @@ suite('Functional Tests', function () {
                 })
                 .end(function (err, res) {
                     //  console.log(res);
+                    issueIdToDelete = res.body._id;
+                    console.log("issueIdToDelete", issueIdToDelete);
                     assert.equal(res.status, 200);
                     assert.equal(res.body.issue_title, 'Test2');
                     assert.equal(res.body.issue_text, 'Post it');
@@ -51,7 +55,7 @@ suite('Functional Tests', function () {
                     assert.equal(res.body.status_text, '');
                     assert.equal(res.body.open, true);
                 });
-            done()
+            done();
         });
         test('Create an issue with missing required fields', (done) => {
             chai
@@ -79,8 +83,9 @@ suite('Functional Tests', function () {
                 .get('/api/issues/TEST')
                 .end(function (err, res) {
                     assert.equal(res.status, 200);
-                    done();
                 });
+            done();
+
         });
 
         test('View issues on a project with one filter', (done) => {
@@ -90,8 +95,9 @@ suite('Functional Tests', function () {
                 .get('/api/issues/TEST?created_by=tester 1')
                 .end(function (err, res) {
                     assert.equal(res.status, 200);
-                    done();
                 });
+            done();
+
         });
         test('View issues on a project with multiple filters', (done) => {
             chai
@@ -100,8 +106,8 @@ suite('Functional Tests', function () {
                 .get('/api/issues/TEST?created_by=tester 1&issue_title=Test2')
                 .end(function (err, res) {
                     assert.equal(res.status, 200);
-                    done();
                 });
+            done();
         });
     });
     suite('PUT request to /api/issues/{project}', () => {
@@ -113,13 +119,11 @@ suite('Functional Tests', function () {
                 .send({
                     _id: '66f7b3b1b3271872e9dedbeb',
                     issue_title: 'UpdatedTest1',
-
                 })
                 .end(function (err, res) {
                     // console.log(res);
                     assert.equal(res.status, 200);
                     assert.equal(res.text, '{"result":"successfully updated","_id":"66f7b3b1b3271872e9dedbeb"}');
-
                 });
             done()
         });
@@ -205,4 +209,55 @@ suite('Functional Tests', function () {
             done()
         });
     });
-});
+    suite('DELETE request to /api/issues/{project}', () => {
+        test('Delete an issue', (done) => {
+            console. log("issueIdToDelete in delete suite", issueIdToDelete);
+            chai
+                .request(server)
+                .keepOpen()
+                .delete('/api/issues/TEST')
+                .send({
+                    _id: issueIdToDelete,
+                })
+                .end(function (err, res) {
+                    // console.log(res);
+                    assert.equal(res.status, 200);
+                    assert.equal(res.text, `{"result":"successfully deleted","_id":"${issueIdToDelete}"}`);
+                });
+            done();
+        });
+
+         test('Delete an issue with an invalid _id', (done) => {
+             chai
+                 .request(server)
+                .keepOpen()
+                 .delete('/api/issues/TEST')
+                 .send({
+                     _id: '4047b3b1b3271872e9ded404',
+                 })
+                 .end(function (err, res) {
+                    // console.log(res);
+                    assert.equal(res.status, 200);
+                   assert.equal(res.text, '{"error":"could not delete","_id":"4047b3b1b3271872e9ded404"}');
+
+                 });
+            done();
+         });
+          test('Delete an issue with missing _id', (done) => {
+                      chai
+                          .request(server)
+                         .keepOpen()
+                          .delete('/api/issues/TEST')
+                          .send({
+                              _id: '',
+                          })
+                          .end(function (err, res) {
+                             // console.log(res);
+                             assert.equal(res.status, 200);
+                            assert.equal(res.text, '{"error":"missing _id"}');
+         
+                          });
+                     done();
+                  });
+             });
+    });
